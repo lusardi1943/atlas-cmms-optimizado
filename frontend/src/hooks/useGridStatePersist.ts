@@ -11,7 +11,8 @@ import { GridColDef } from '@mui/x-data-grid';
 const useGridStatePersist = (
   apiRef: React.MutableRefObject<GridApiPro>,
   columns: GridColDef[],
-  prefix: string
+  prefix: string,
+  options?: { ignoreSorting?: boolean }
 ) => {
   const stateItem = `${prefix}DataGridState`;
   const hasRestoredSortingRef = useRef(false);
@@ -58,7 +59,7 @@ const useGridStatePersist = (
         }
 
         // Restore sorting only once
-        if (!hasRestoredSortingRef.current && state.sorting) {
+        if (!options?.ignoreSorting && !hasRestoredSortingRef.current && state.sorting) {
           apiRef.current.restoreState({
             sorting: state.sorting
           });

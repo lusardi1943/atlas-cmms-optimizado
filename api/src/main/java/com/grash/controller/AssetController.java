@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -73,6 +74,14 @@ public class AssetController {
                 }
             } else throw new CustomException("Access Denied", HttpStatus.FORBIDDEN);
         }
+        
+        // [MODIFICADO] Establecer ordenamiento predeterminado por Ubicación ascendente (A-Z).
+        // Impacto: Organiza los activos por ubicación alfabéticamente de forma predeterminada.
+        if (searchCriteria.getSortField().equals("id") && searchCriteria.getDirection().equals(Sort.Direction.ASC)) {
+             searchCriteria.setSortField("location.name");
+             searchCriteria.setDirection(Sort.Direction.ASC);
+        }
+        
         return ResponseEntity.ok(assetService.findBySearchCriteria(searchCriteria));
     }
 

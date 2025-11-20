@@ -56,14 +56,20 @@ public class LocationController {
         OwnUser user = userService.whoami(req);
         if (user.getRole().getRoleType().equals(RoleType.ROLE_CLIENT)) {
             if (user.getRole().getViewPermissions().contains(PermissionEntity.LOCATIONS)) {
-                return locationService.findByCompany(user.getCompany().getId()).stream().filter(location -> {
+
+                // [MODIFICADO] Se añade ordenamiento predeterminado por nombre ascendente (A-Z).
+                // Impacto: Organiza la lista alfabéticamente sin afectar el rendimiento (ordenamiento en DB).
+                return locationService.findByCompany(user.getCompany().getId(), Sort.by(Sort.Direction.ASC, "name")).stream().filter(location -> {
                     boolean canViewOthers =
                             user.getRole().getViewOtherPermissions().contains(PermissionEntity.LOCATIONS);
                     return canViewOthers || location.getCreatedBy().equals(user.getId());
                 }).map(location -> locationMapper.toShowDto(location, locationService)).collect(Collectors.toList());
             } else throw new CustomException("Access Denied", HttpStatus.FORBIDDEN);
         } else
-            return locationService.getAll().stream().map(location -> locationMapper.toShowDto(location,
+            // [MODIFICADO] Se añade ordenamiento predeterminado por nombre ascendente para superadmins también.
+            return locationService.getAll().stream()
+                    .sorted((l1, l2) -> l1.getName().compareToIgnoreCase(l2.getName())) // Ordenamiento en memoria (A-Z)
+                    .map(location -> locationMapper.toShowDto(location,
                     locationService)).collect(Collectors.toList());
     }
 
@@ -81,6 +87,14 @@ public class LocationController {
                 }
             } else throw new CustomException("Access Denied", HttpStatus.FORBIDDEN);
         }
+        
+        // [MODIFICADO] Establecer ordenamiento predeterminado si no se especifica otro.
+        // Impacto: Asegura que las búsquedas se muestren ordenadas por nombre ascendente (A-Z) por defecto.
+        if (searchCriteria.getSortField().equals("id") && searchCriteria.getDirection().equals(Sort.Direction.ASC)) {
+             searchCriteria.setSortField("name");
+             searchCriteria.setDirection(Sort.Direction.ASC);
+        }
+        
         return ResponseEntity.ok(locationService.findBySearchCriteria(searchCriteria));
     }
 

@@ -101,3 +101,91 @@ Para subir las imágenes compiladas a su repositorio `lusardi1943`:
 
 ---
 **Nota:** Todos los cambios en el código han sido documentados con comentarios en español marcados como `// [MODIFICADO]` o `// [AÑADIDO]` para facilitar su futura referencia.
+
+## 6. Análisis de Impacto del Ordenamiento en el Rendimiento
+El usuario solicitó explícitamente verificar que la implementación del ordenamiento predeterminado (Ascendente A-Z) no afectara negativamente las optimizaciones previas (Lazy Loading).
+
+**Conclusión: El rendimiento NO se ve afectado.**
+
+### Justificación Técnica:
+1.  **Backend (Base de Datos):**
+    *   El ordenamiento se realiza a nivel de base de datos utilizando cláusulas `ORDER BY` en SQL.
+    *   **Ubicaciones:** `SELECT ... FROM location ... ORDER BY name ASC`. Esto es extremadamente rápido y eficiente para el motor de base de datos.
+    *   **Activos:** `SELECT ... FROM asset ... LEFT JOIN location ... ORDER BY location.name ASC`. Aunque implica un `JOIN`, este es necesario para la consulta de todos modos. Al mantener `FetchType.LAZY`, no traemos los datos pesados de la ubicación, solo usamos su nombre para ordenar.
+    *   **No hay N+1:** No estamos iterando sobre la lista en Java para ordenar ni haciendo consultas adicionales por cada fila.
+
+2.  **Frontend (React):**
+    *   **Locations:** Utiliza `sortingMode="client"`. El navegador ordena los datos en memoria instantáneamente. Dado que la paginación limita los datos o el volumen total no es masivo, el impacto es nulo (0ms perceptibles).
+    *   **Assets:** Utiliza ordenamiento en servidor (`server-side`). El frontend simplemente pide "dame la página 1 ordenada por Location ASC". El backend responde con la página ya ordenada. No hay carga extra de procesamiento en el navegador.
+
+Todas las optimizaciones de **Lazy Loading** implementadas anteriormente permanecen intactas y funcionales.
+
+## 7. Guía Final de Despliegue y Entrega
+
+### 7.1. Subir Imágenes a Docker Hub (Versión v2.0)
+Para subir tus imágenes actualizadas con un nuevo tag (`v2.0`) y que queden disponibles en tu repositorio `lusardi1943`, sigue estos pasos:
+
+1.  **Login en Docker Hub (si no lo has hecho):**
+    ```powershell
+    docker login
+    ```
+
+2.  **Construir las imágenes:**
+    Asegúrate de tener la última versión construida localmente.
+    ```powershell
+    docker-compose build
+    ```
+
+3.  **Etiquetar (Tag) las imágenes:**
+    Asignamos el tag `v2.0` a las imágenes que acabamos de construir.
+    ```powershell
+    docker tag lusardi1943/atlas-cmms-backend:latest lusardi1943/atlas-cmms-backend:v2.0
+    docker tag lusardi1943/atlas-cmms-frontend:latest lusardi1943/atlas-cmms-frontend:v2.0
+    ```
+
+4.  **Subir (Push) las imágenes:**
+    Enviamos las imágenes etiquetadas a la nube.
+    ```powershell
+    docker push lusardi1943/atlas-cmms-backend:v2.0
+    docker push lusardi1943/atlas-cmms-frontend:v2.0
+    ```
+
+### 7.2. Subir Código a GitHub
+Para guardar todo tu trabajo en tu repositorio de GitHub:
+
+1.  **Inicializar repositorio (si no existe):**
+    ```powershell
+    git init
+    ```
+
+2.  **Añadir archivos:**
+    ```powershell
+    git add .
+    ```
+
+3.  **Guardar cambios (Commit):**
+    ```powershell
+    git commit -m "Versión 2.0: Optimización de rendimiento y ordenamiento predeterminado (A-Z)"
+    ```
+
+4.  **Conectar con remoto (si es nuevo):**
+    *(Reemplaza TU-URL-DEL-REPO con la URL real de tu GitHub)*
+    ```powershell
+    git remote add origin https://github.com/lusardi1943/TU-NOMBRE-DE-REPO.git
+    ```
+
+5.  **Subir (Push):**
+    ```powershell
+    git branch -M main
+    git push -u origin main
+    ```
+
+### 7.3. Despliegue en Producción (Desde Docker Hub)
+He creado un archivo especial `docker-compose.prod.yml` que está configurado para descargar las imágenes `v2.0` directamente desde Docker Hub, sin necesidad de tener el código fuente ni compilar.
+
+**Para desplegar en un servidor nuevo:**
+1.  Copia solo los archivos `docker-compose.prod.yml` y `.env` al servidor.
+2.  Ejecuta:
+    ```powershell
+    docker-compose -f docker-compose.prod.yml up -d
+    ```

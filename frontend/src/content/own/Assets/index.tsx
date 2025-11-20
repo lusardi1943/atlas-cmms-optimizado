@@ -133,7 +133,7 @@ function Assets() {
     ],
     pageSize: 10,
     pageNum: 0,
-    direction: 'DESC'
+    direction: 'ASC'
   };
   const [criteria, setCriteria] = useState<SearchCriteria>(initialCriteria);
   const onQueryChange = (event) => {
@@ -381,7 +381,7 @@ function Assets() {
         getFormattedDate(params.value)
     }
   ];
-  useGridStatePersist(apiRef, columns, 'asset');
+  useGridStatePersist(apiRef, columns, 'asset', { ignoreSorting: true });
 
   // Mapping for column fields to API field names for sorting
   const fieldMapping: Record<string, string> = {
@@ -682,12 +682,12 @@ function Assets() {
               warrantyExpirationDate: null,
               location: locationParamObject
                 ? {
-                    label: locationParamObject.name,
-                    value: locationParamObject.id
-                  }
+                  label: locationParamObject.name,
+                  value: locationParamObject.id
+                }
                 : null
             }}
-            onChange={({ field, e }) => {}}
+            onChange={({ field, e }) => { }}
             onSubmit={async (values) => {
               let formattedValues = formatAssetValues(values);
               return new Promise<void>((resolve, rej) => {
@@ -742,12 +742,12 @@ function Assets() {
         style={
           (rowNode?.depth ?? 0) > 0
             ? {
-                backgroundColor:
-                  rowNode.depth % 2 === 0
-                    ? theme.colors.primary.light
-                    : theme.colors.primary.main,
-                color: 'white'
-              }
+              backgroundColor:
+                rowNode.depth % 2 === 0
+                  ? theme.colors.primary.light
+                  : theme.colors.primary.main,
+              color: 'white'
+            }
             : undefined
         }
       />
@@ -875,6 +875,9 @@ function Assets() {
                   initialState={{
                     columns: {
                       columnVisibilityModel: {}
+                    },
+                    sorting: {
+                      sortModel: [{ field: 'location', sort: 'asc' }]
                     }
                   }}
                 />

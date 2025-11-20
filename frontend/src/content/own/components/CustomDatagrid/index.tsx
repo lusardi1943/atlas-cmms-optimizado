@@ -18,6 +18,7 @@ export type CustomDatagridColumn = GridEnrichedColDef & {
 interface CustomDatagridProps extends DataGridProProps {
   notClickable?: boolean;
   pro?: boolean;
+  treeData?: boolean;
   columns: CustomDatagridColumn[];
 }
 
