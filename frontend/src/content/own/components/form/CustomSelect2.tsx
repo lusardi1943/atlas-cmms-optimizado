@@ -102,7 +102,7 @@ export const CustomSelect = ({
           label: customer.name,
           value: customer.id
         };
-      });
+      }).sort((a, b) => a.label.localeCompare(b.label)); // [MODIFICADO] Ordenar A-Z
       onOpen = fetchCustomers;
       break;
     case 'vendor':
@@ -111,7 +111,7 @@ export const CustomSelect = ({
           label: vendor.companyName,
           value: vendor.id
         };
-      });
+      }).sort((a, b) => a.label.localeCompare(b.label)); // [MODIFICADO] Ordenar A-Z
       onOpen = fetchVendors;
       break;
     case 'user':
@@ -120,7 +120,7 @@ export const CustomSelect = ({
           label: `${user.firstName} ${user.lastName}`,
           value: user.id
         };
-      });
+      }).sort((a, b) => a.label.localeCompare(b.label)); // [MODIFICADO] Ordenar A-Z
       onOpen = fetchUsers;
       break;
     case 'team':
@@ -129,7 +129,7 @@ export const CustomSelect = ({
           label: team.name,
           value: team.id
         };
-      });
+      }).sort((a, b) => a.label.localeCompare(b.label)); // [MODIFICADO] Ordenar A-Z
       onOpen = fetchTeams;
       break;
     case 'currency':
@@ -138,7 +138,7 @@ export const CustomSelect = ({
           label: currency.name,
           value: currency.id
         };
-      });
+      }).sort((a, b) => a.label.localeCompare(b.label)); // [MODIFICADO] Ordenar A-Z
       onOpen = fetchCurrencies;
       break;
     case 'location':
@@ -150,7 +150,7 @@ export const CustomSelect = ({
             label: location.name,
             value: location.id
           };
-        });
+        }).sort((a, b) => a.label.localeCompare(b.label)); // [MODIFICADO] Ordenar A-Z
       onOpen = fetchLocations;
 
       return (
@@ -212,15 +212,15 @@ export const CustomSelect = ({
                 field.name,
                 field.multiple
                   ? selectedLocations.map((location) => ({
-                      label: location.name,
-                      value: location.id
-                    }))
+                    label: location.name,
+                    value: location.id
+                  }))
                   : selectedLocations.length
-                  ? {
+                    ? {
                       label: selectedLocations[0].name,
                       value: selectedLocations[0].id
                     }
-                  : null
+                    : null
               );
               setLocationModalOpen(false); // Close the modal
             }}
@@ -228,8 +228,8 @@ export const CustomSelect = ({
               (field.multiple
                 ? fieldValue ?? []
                 : fieldValue
-                ? [fieldValue]
-                : []
+                  ? [fieldValue]
+                  : []
               ).some((a) => Number(a.value) === location.id)
             )}
           />
@@ -243,7 +243,7 @@ export const CustomSelect = ({
             label: asset.name,
             value: asset.id
           };
-        });
+        }).sort((a, b) => a.label.localeCompare(b.label)); // [MODIFICADO] Ordenar A-Z
       const locationId = field.relatedFields?.length
         ? formik.values[field.relatedFields[0].field]?.value ?? null
         : null;
@@ -309,15 +309,15 @@ export const CustomSelect = ({
                 field.name,
                 field.multiple
                   ? selectedAssets.map((asset) => ({
-                      label: asset.name,
-                      value: asset.id
-                    }))
+                    label: asset.name,
+                    value: asset.id
+                  }))
                   : selectedAssets.length
-                  ? {
+                    ? {
                       label: selectedAssets[0].name,
                       value: selectedAssets[0].id
                     }
-                  : null
+                    : null
               );
               setAssetModalOpen(false); // Close the modal
             }}
@@ -325,8 +325,8 @@ export const CustomSelect = ({
               (field.multiple
                 ? fieldValue ?? []
                 : fieldValue
-                ? [fieldValue]
-                : []
+                  ? [fieldValue]
+                  : []
               ).some((a) => Number(a.value) === asset.id)
             )}
           />
@@ -339,7 +339,7 @@ export const CustomSelect = ({
           label: role.name,
           value: role.id
         };
-      });
+      }).sort((a, b) => a.label.localeCompare(b.label)); // [MODIFICADO] Ordenar A-Z
       onOpen = fetchRoles;
       break;
     case 'category':
@@ -349,7 +349,7 @@ export const CustomSelect = ({
             label: category.name,
             value: category.id
           };
-        }) ?? [];
+        }).sort((a, b) => a.label.localeCompare(b.label)) ?? []; // [MODIFICADO] Ordenar A-Z
       onOpen = () => fetchCategories(field.category);
       break;
     case 'priority':
@@ -366,17 +366,17 @@ export const CustomSelect = ({
           <Box display="flex" flexDirection="column">
             {fieldValue?.length
               ? fieldValue.map(({ label, value }) => (
-                  <Link
-                    sx={{ mb: 1 }}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={`/app/inventory/parts/${value}`}
-                    key={value}
-                    variant="h4"
-                  >
-                    {label}
-                  </Link>
-                ))
+                <Link
+                  sx={{ mb: 1 }}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={`/app/inventory/parts/${value}`}
+                  key={value}
+                  variant="h4"
+                >
+                  {label}
+                </Link>
+              ))
               : null}
           </Box>
           <SelectParts

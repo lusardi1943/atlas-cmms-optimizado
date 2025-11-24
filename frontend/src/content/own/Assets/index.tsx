@@ -151,6 +151,15 @@ function Assets() {
   const onFilterChange = (newFilters: FilterField[]) => {
     const newCriteria = { ...criteria };
     newCriteria.filterFields = newFilters;
+    // [MODIFICADO] Si hay filtros activos, aumentamos el tamaño de página para mostrar "todos" los registros
+    // y aseguramos el orden ascendente (A-Z), como solicitó el usuario.
+    if (newFilters.length > 0) {
+      newCriteria.pageSize = 2000; // Número suficientemente grande para "todos"
+      newCriteria.direction = 'ASC';
+    } else {
+      // Restaurar valores por defecto si se limpian los filtros (opcional, o mantener lo que estaba)
+      newCriteria.pageSize = 10;
+    }
     setCriteria(newCriteria);
   };
   const [deployedAssets, setDeployedAssets] = useState<

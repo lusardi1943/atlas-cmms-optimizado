@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
   api:
     # [PRODUCCION] Usa la imagen subida a Docker Hub
-    image: lusardi1943/atlas-cmms-backend:v2.0
+    image: lusardi1943/atlas-cmms-backend:v3
     container_name: atlas-cmms-backend
     depends_on:
       - postgres
@@ -60,7 +60,7 @@ services:
       - "8080:8080"
   frontend:
     # [PRODUCCION] Usa la imagen subida a Docker Hub
-    image: lusardi1943/atlas-cmms-frontend:v2.0
+    image: lusardi1943/atlas-cmms-frontend:v3
     container_name: atlas-cmms-frontend
     environment:
         API_URL: ${PUBLIC_API_URL}
