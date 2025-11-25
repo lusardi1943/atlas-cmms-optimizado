@@ -58,6 +58,8 @@ export interface AssetDTO extends Audit {
   power: string;
   manufacturer: string;
   customId: string;
+  hierarchy: number[];
+  hierarchyNames: string[];
 }
 export interface AssetRow extends AssetDTO {
   hierarchy: number[];

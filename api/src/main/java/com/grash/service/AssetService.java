@@ -255,8 +255,16 @@ public class AssetService {
         Optional<Location> optionalLocation = locationService.findByNameIgnoreCaseAndCompany(dto.getLocationName(),
                 companyId).stream().findFirst();
         optionalLocation.ifPresent(asset::setLocation);
-        Optional<Asset> optionalAsset =
-                findByNameIgnoreCaseAndCompany(dto.getParentAssetName(), companyId).stream().findFirst();
+        
+        // [CORREGIDO] Buscar parent asset por nombre Y location, no solo nombre
+        // Impacto: Evita vincular assets con el mismo nombre en diferentes locations
+        Optional<Asset> optionalAsset = Optional.empty();
+        if (dto.getParentAssetName() != null && !dto.getParentAssetName().isEmpty() && optionalLocation.isPresent()) {
+            optionalAsset = findByNameIgnoreCaseAndCompany(dto.getParentAssetName(), companyId)
+                    .stream()
+                    .filter(a -> a.getLocation() != null && a.getLocation().getId().equals(optionalLocation.get().getId()))
+                    .findFirst();
+        }
         optionalAsset.ifPresent(asset::setParentAsset);
         Optional<AssetCategory> optionalAssetCategory =
                 assetCategoryService.findByNameIgnoreCaseAndCompanySettings(dto.getCategory(), companySettingsId);

@@ -133,11 +133,12 @@ function Assets() {
     ],
     pageSize: 10,
     pageNum: 0,
-    direction: 'ASC'
+    direction: 'ASC',
+    sortField: 'location.name' // [CORREGIDO] Ordenar por ubicación (A-Z) por defecto
   };
   const [criteria, setCriteria] = useState<SearchCriteria>(initialCriteria);
   const onQueryChange = (event) => {
-    setView(event.target.value ? 'list' : 'hierarchy');
+    // setView(event.target.value ? 'list' : 'hierarchy'); // [MODIFICADO] Mantener vista jerárquica
     onSearchQueryChange<AssetDTO>(event, criteria, setCriteria, [
       'name',
       'description',
@@ -156,6 +157,10 @@ function Assets() {
     if (newFilters.length > 0) {
       newCriteria.pageSize = 2000; // Número suficientemente grande para "todos"
       newCriteria.direction = 'ASC';
+      // [MODIFICADO] Forzar ordenamiento por Nombre (A-Z) en la vista jerárquica filtrada
+      if (apiRef.current && apiRef.current.setSortModel) {
+        apiRef.current.setSortModel([{ field: 'name', sort: 'asc' }]);
+      }
     } else {
       // Restaurar valores por defecto si se limpian los filtros (opcional, o mantener lo que estaba)
       newCriteria.pageSize = 10;
@@ -594,6 +599,8 @@ function Assets() {
     name: Yup.string().required(t('required_asset_name'))
   };
   const handleReset = (callApi: boolean) => {
+    // [MODIFICADO] Al refrescar, limpiar filtros y restaurar vista por defecto
+    setCriteria(initialCriteria);
     dispatch(resetAssetsHierarchy(callApi));
   };
   useEffect(() => {
@@ -602,25 +609,31 @@ function Assets() {
         'rowExpansionChange'
       > = async (node) => {
         const row = apiRef.current.getRow(node.id) as AssetRow | null;
-        if (!node.childrenExpanded || !row || row.childrenFetched) {
+        // [MODIFICADO] En vista filtrada, NO hacer fetch. Usar solo los datos ya cargados (que son los resultados del filtro).
+        if (isFiltered) return;
+
+        if (!node.childrenExpanded || (!row && view !== 'hierarchy') || (row && row.childrenFetched)) {
           return;
         }
-        apiRef.current.updateRows([
-          {
-            id: t('loading_assets', { name: row.name, id: node.id }),
-            hierarchy: [...row.hierarchy, '']
-          }
-        ]);
-        if (
-          !deployedAssets.find((deployedAsset) => deployedAsset.id === row.id)
-        )
-          setDeployedAssets(
-            deployedAssets.concat({
-              id: row.id,
-              hierarchy: row.hierarchy
-            })
-          );
-        dispatch(getAssetChildren(row.id, row.hierarchy, pageable));
+        // Si row es null (grupo virtual), no podemos hacer fetch. Pero si es real, sí.
+        if (row) {
+          apiRef.current.updateRows([
+            {
+              id: t('loading_assets', { name: row.name, id: node.id }),
+              hierarchy: [...row.hierarchy, '']
+            }
+          ]);
+          if (
+            !deployedAssets.find((deployedAsset) => deployedAsset.id === row.id)
+          )
+            setDeployedAssets(
+              deployedAssets.concat({
+                id: row.id,
+                hierarchy: row.hierarchy
+              })
+            );
+          dispatch(getAssetChildren(row.id, row.hierarchy, pageable));
+        }
       };
       /**
        * By default, the grid does not toggle the expansion of rows with 0 children
@@ -737,6 +750,11 @@ function Assets() {
     </Dialog>
   );
 
+  const isFiltered =
+    criteria.filterFields.length > 1 ||
+    (criteria.filterFields.length === 1 &&
+      criteria.filterFields[0].field !== 'archived');
+
   const groupingColDef: DataGridProProps['groupingColDef'] = {
     headerName: t('hierarchy'),
     renderCell: (params) => <GroupingCellWithLazyLoading {...params} />
@@ -824,12 +842,20 @@ function Assets() {
                   pro
                   treeData={view === 'hierarchy'}
                   columns={columns}
-                  rows={view === 'hierarchy' ? assetsHierarchy : assets.content}
+                  rows={
+                    view === 'hierarchy'
+                      ? (isFiltered
+                        ? assets.content
+                        : assetsHierarchy)
+                      : assets.content
+                  }
                   apiRef={apiRef}
                   getRowHeight={() => 'auto'}
                   getTreeDataPath={(row) =>
                     view === 'hierarchy'
-                      ? row.hierarchy.map((id) => id.toString())
+                      ? (row.hierarchyNames && isFiltered
+                        ? [...row.hierarchyNames, row.name]
+                        : row.hierarchy.map((id) => id.toString()))
                       : [row.id.toString()]
                   }
                   disableColumnFilter
@@ -908,7 +934,7 @@ function Assets() {
             onFilterChange={onFilterChange}
             onSave={() => {
               handleCloseFilterDrawer();
-              setView('list');
+              // setView('list'); // [MODIFICADO] Mantener vista jerárquica
             }}
           />
         </Drawer>

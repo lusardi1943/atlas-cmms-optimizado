@@ -35,6 +35,20 @@ public interface AssetMapper {
     default AssetShowDTO toShowDto(Asset model, @MappingTarget AssetShowDTO target,
                                    @Context AssetService assetService) {
         target.setHasChildren(assetService.hasChildren(model.getId()));
+        
+        // [MODIFICADO] Construir jerarquía de padres (IDs y Nombres) para el frontend.
+        // Impacto: Permite al frontend reconstruir el árbol incluso en resultados de búsqueda plana.
+        java.util.List<Long> hierarchy = new java.util.ArrayList<>();
+        java.util.List<String> hierarchyNames = new java.util.ArrayList<>();
+        Asset current = model.getParentAsset();
+        while (current != null) {
+            hierarchy.add(0, current.getId());
+            hierarchyNames.add(0, current.getName());
+            current = current.getParentAsset();
+        }
+        target.setHierarchy(hierarchy);
+        target.setHierarchyNames(hierarchyNames);
+        
         return target;
     }
 }

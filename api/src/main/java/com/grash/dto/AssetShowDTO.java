@@ -70,4 +70,8 @@ public class AssetShowDTO extends AuditShowDTO {
     private String manufacturer;
 
     private String customId;
+
+    private List<Long> hierarchy = new ArrayList<>();
+
+    private List<String> hierarchyNames = new ArrayList<>();
 }
